@@ -1,0 +1,23 @@
+# Dependências principais (necessárias para todas as métricas de
+# verificação, identificação, morphing e qualidade de imagem PSNR/SSIM).
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.2
+scikit-image>=0.20
+pandas>=1.5
+matplotlib>=3.6
+Pillow>=9.4
+
+# Opcional: extrator ArcFace pronto (facetrust.embeddings.ArcFaceEmbedder).
+# Sem isso, use CallableEmbedder com seu próprio extrator de embeddings.
+# insightface>=0.7
+# onnxruntime>=1.15        # ou onnxruntime-gpu
+
+# Opcional: métrica perceptual LPIPS (facetrust.image_quality.lpips_distance).
+# torch>=2.0
+# lpips>=0.1.4
+
+# Watermarking (SSLWatermarking e RoSTEALS) não são dependências deste
+# pacote -- instale-os separadamente a partir dos respectivos repositórios
+# e conecte-os via facetrust.watermark.SSLWatermarkAdapter /
+# RoSTEALSAdapter.

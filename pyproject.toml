@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facetrust"
+version = "0.1.0"
+description = "Métricas de identificação/verificação biométrica, qualidade de imagem, watermarking e potencial de ataque de morphing, para o tutorial 'Biometrics under attack: On provenance, trust and threat robustness'."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Guilherme G. Schardong" },
+]
+keywords = ["biometrics", "face recognition", "watermarking", "morphing attack", "media forensics"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Image Processing",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+# Núcleo: só o que é necessário para verification/identification/morphing/
+# image_quality/transforms/pipeline/plotting funcionarem com um embedder
+# fornecido pelo usuário (CallableEmbedder). Nada aqui exige GPU nem
+# download de pesos.
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "scikit-learn>=1.2",
+  "scikit-image>=0.20",
+  "pandas>=1.5",
+  "matplotlib>=3.6",
+  "Pillow>=9.4",
+]
+
+[project.urls]
+Repository = "https://example.org/facetrust"  # ajuste para o repositório real, se/quando publicado
+
+# ---------------------------------------------------------------------------
+# Dependências opcionais
+# ---------------------------------------------------------------------------
+#
+# IMPORTANTE sobre `ssl-watermarking` e `rosteals`: nem o SSLWatermarking
+# (facebookresearch/ssl_watermarking) nem o RoSTEALS (TuBui/RoSteALS) são
+# pacotes publicados no PyPI -- ambos são repositórios de pesquisa
+# distribuídos como "clone + pip install -r requirements.txt + baixe os
+# pesos manualmente", sem `setup.py`/`pyproject.toml` próprio. Ou seja,
+# `pip install facetrust[rosteals]` NUNCA vai instalar o RoSTEALS em si;
+# essas duas extras apenas pré-instalam as dependências de runtime que os
+# dois repositórios exigem (torch, etc.), para que, depois de clonar cada
+# repositório manualmente e apontar seu `embed_fn`/`extract_fn` para
+# `facetrust.watermark.SSLWatermarkAdapter` / `RoSTEALSAdapter`, o ambiente
+# já esteja pronto. As versões abaixo são um ponto de partida best-effort;
+# confira o requirements.txt de cada repositório antes de fixar produção.
+[project.optional-dependencies]
+arcface = [
+  "insightface>=0.7",
+  "onnxruntime>=1.15",       # troque por onnxruntime-gpu se tiver CUDA
+]
+lpips = [
+  "torch>=2.0",
+  "lpips>=0.1.4",
+]
+ssl-watermarking = [
+  # deps de runtime do facebookresearch/ssl_watermarking (não publicado no
+  # PyPI -- clone o repo à parte e use SSLWatermarkAdapter para conectar).
+  "torch>=1.10",
+  "torchvision>=0.11",
+  "augly",
+]
+rosteals = [
+  # deps de runtime do TuBui/RoSteALS (não publicado no PyPI -- clone o
+  # repo à parte, baixe os pesos com o script deles, e use
+  # RoSTEALSAdapter para conectar). Baseado na família latent-diffusion/
+  # VQGAN que o RoSTEALS usa como autoencoder; confirme contra o
+  # requirements.txt oficial do repositório antes de fixar versões.
+  "torch>=1.11",
+  "torchvision>=0.12",
+  "pytorch-lightning",
+  "omegaconf",
+  "einops",
+]
+dev = [
+  "pytest>=7.0",
+]
+all = [
+  "facetrust[arcface,lpips,ssl-watermarking,rosteals]",
+]
+
+[tool.setuptools]
+packages = ["facetrust", "facetrust.adapters"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

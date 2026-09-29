@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biometrics Under Attack</title>
+<meta name="description" content="Biometrics under attack: On provenance, trust and threat robustness — SIBGRAPI 2026 tutorial. Slides, manuscript, code, data and hands-on notebook.">
+<meta property="og:title" content="Biometrics Under Attack — SIBGRAPI 2026 Tutorial">
+<meta property="og:description" content="On provenance, trust and threat robustness. Slides, manuscript, code, data and notebook.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- =====================================================================
+  EDIT HERE — things to fill in before publishing:
+   1. Co-authors / affiliations (header block below)
+   2. Put slides and manuscript at docs/assets/slides.pdf and docs/assets/manuscript.pdf
+   3. Replace GITHUB_USER/GITHUB_REPO in the Colab link (search "GITHUB_USER")
+   4. BibTeX entry at the bottom
+===================================================================== -->
+
+<header class="hero">
+  <div class="wrap">
+    <p class="venue">SIBGRAPI 2026 · Tutorial</p>
+    <h1>Biometrics Under Attack</h1>
+    <p class="subtitle">On provenance, trust and threat robustness</p>
+
+    <p class="authors">
+      <span><a href="https://schardong.github.io">Guilherme Schardong</a></span><sup>1</sup>
+      <span><a href="https://sites.google.com/site/tiagonovellodebrito">Tiago Novello</a></span><sup>2</sup>
+      <span><a href="https://www.lschirmer.com">Luiz Schirmer</a></span><sup>1</sup>
+      <span><a href="https://visteam.isr.uc.pt/nuno-goncalves">Nuno Gonçalves</a></span><sup>3,4</sup>
+    </p>
+    <p class="affil">
+      <sup>1</sup>UFSM &nbsp; <sup>2</sup>IMPA &nbsp; <sup>3</sup>ISR-UC &nbsp; <sup>4</sup>INCM
+    </p>
+
+    <nav class="buttons" aria-label="Materials">
+      <a class="btn" href="assets/tutorial-slides.pdf">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></svg>
+        Tutorial Slides (PDF)
+      </a>
+      <a class="btn" href="assets/manuscript.pdf">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>
+        Manuscript (PDF)
+      </a>
+      <a class="btn" href="assets/facetrust.zip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>
+        Code
+      </a>
+      <a class="btn" href="https://drive.google.com/file/d/17cANlhPb-3H9D6EGRadIOEYfXIKBKZwk/view?usp=sharing" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>
+        Data
+      </a>
+      <a class="btn" href="https://drive.google.com/file/d/168zRvzdFNWKUS0hVgfam4RjWOUfR1Gr3/view?usp=sharing" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg>
+        Morphs
+      </a>
+      <a class="btn" href="assets/facetrust_colab_demo.ipynb" download>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        Notebook
+      </a>
+      <a class="btn btn-accent" href="https://colab.research.google.com/github/GITHUB_USER/GITHUB_REPO/blob/main/docs/assets/facetrust_colab_demo.ipynb" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 9-14 9z"/></svg>
+        Open in Colab
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="abstract">
+    <h2>Overview</h2>
+    <p>
+      Face biometric systems are increasingly exposed to manipulated media. This tutorial
+      looks at two sides of that problem along the full recognition pipeline — capture,
+      processing, enrollment and decision: <strong>attacks</strong>, represented by face
+      morphing, and <strong>defenses</strong>, represented by invisible watermarking for
+      provenance (SSLWatermarking, RoSteALS). The central question is how to evaluate
+      both jointly: how much a watermark costs in perceptual quality and biometric
+      similarity, how robust it is to benign transformations, and how vulnerable a
+      system is to morphs at its real operating point.
+    </p>
+    <div class="pipeline" role="img" aria-label="Pipeline: capture, processing, enrollment, recognition">
+      <span>Capture</span><i></i><span>Processing</span><i></i><span>Enrollment</span><i></i><span>Recognition</span>
+    </div>
+  </section>
+
+  <section id="materials">
+    <h2>Materials</h2>
+    <div class="cards">
+      <article class="card">
+        <h3>Tutorial Slides</h3>
+        <p>Full deck used in the two 90-minute blocks of the tutorial.</p>
+        <a href="assets/tutorial-slides.pdf">slides.pdf</a>
+      </article>
+      <article class="card">
+        <h3>Manuscript</h3>
+        <p>Companion text with the definitions of every metric used in the hands-on.</p>
+        <a href="assets/manuscript.pdf">manuscript.pdf</a>
+      </article>
+      <article class="card">
+        <h3>Code — <code>facetrust</code></h3>
+        <p>Python package (MIT) with verification, identification, morphing-attack, image-quality and watermark metrics.</p>
+        <a href="assets/facetrust.zip">facetrust.zip</a> <span class="size">58&nbsp;KB</span>
+      </article>
+      <article class="card">
+        <h3>Data</h3>
+        <p>Clean and watermarked face images, laid out as the notebook expects.</p>
+        <a href="https://drive.google.com/file/d/17cANlhPb-3H9D6EGRadIOEYfXIKBKZwk/view?usp=sharing" rel="noopener">data.zip on Google Drive</a> <span class="size">165&nbsp;MB</span>
+      </article>
+      <article class="card">
+        <h3>Morphs</h3>
+        <p>FRLL morphs, one <code>morph_&lt;algorithm&gt;</code> folder per method. Imported with <code>scripts/copy_frll_data.py</code>.</p>
+        <a href="https://drive.google.com/file/d/168zRvzdFNWKUS0hVgfam4RjWOUfR1Gr3/view?usp=sharing" rel="noopener">morphs.zip on Google Drive</a>
+      </article>
+      <article class="card">
+        <h3>Hands-on notebook</h3>
+        <p>20–30 minute Colab activity. Downloads code and data by itself; falls back to manual upload if Drive quota runs out.</p>
+        <a href="assets/facetrust_colab_demo.ipynb" download>facetrust_colab_demo.ipynb</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="handson">
+    <h2>Hands-on activity</h2>
+    <p class="lead">
+      How does increasing watermark strength (<var>α</var>) change, at the same time,
+      visual quality, watermark reliability and biometric similarity?
+    </p>
+    <ol class="steps">
+      <li><b>Setup</b> — fetch <code>facetrust.zip</code>, <code>data.zip</code> and <code>morphs.zip</code>, copy the morphs into <code>data/morph/</code>, install the package with the ArcFace extra. Run this <em>before</em> the session.</li>
+      <li><b>Embeddings</b> — ArcFace via <code>insightface</code>, with a fallback extractor so the notebook never blocks.</li>
+      <li><b>Dataset</b> — load clean, watermarked and morphed samples from <code>data/</code>.</li>
+      <li><b>α sweep</b> — PSNR/SSIM and embedding drift as a function of watermark strength.</li>
+      <li><b>Robustness</b> — JPEG, resize, blur, crop and rotation.</li>
+      <li><b>Four scenarios</b> — Clean↔Clean, Clean↔WM, WM↔Clean, WM↔WM; EER and TAR@FAR.</li>
+      <li><b>Morphing attack potential</b> — MMPMR, FMMPMR, ProdAvg-MMPMR and RMMR at calibrated FARs, per morphing algorithm.</li>
+      <li><b>Discussion</b> — is there a single optimal α, or a trade-off surface?</li>
+    </ol>
+    <p class="note">
+      Watermarked images were generated offline with SSLWatermarking (iterative optimisation per image),
+      so the live session only evaluates them. A GPU runtime speeds up ArcFace; CPU works for the provided data.
+    </p>
+  </section>
+
+  <section id="local">
+    <h2>Running locally</h2>
+<ol class="steps">
+      <li>Download <a href="assets/facetrust.zip">facetrust.zip</a>, <a href="https://drive.google.com/file/d/17cANlhPb-3H9D6EGRadIOEYfXIKBKZwk/view?usp=sharing">data.zip</a> and <a href="https://drive.google.com/file/d/168zRvzdFNWKUS0hVgfam4RjWOUfR1Gr3/view?usp=sharing">morphs.zip</a>.</li>
+      <li>Extract the code and the data, and install the package:
+<pre><code>unzip facetrust.zip -d src &amp;&amp; unzip data.zip
+pip install -e "src/facetrust[arcface]"     # add ,lpips for LPIPS</code></pre></li>
+      <li>Extract the morphs and point <code>copy_frll_data.py</code> at the folder that holds the <code>morph_*</code> subfolders. It copies them to <code>data/morph/&lt;algorithm&gt;/&lt;a&gt;+&lt;b&gt;.png</code>:
+<pre><code>unzip morphs.zip -d morphs_src
+python src/facetrust/scripts/copy_frll_data.py --skip-clean \
+    --morph-src morphs_src/&lt;folder with morph_*&gt; --datadir data \
+    -t morph_stylegan2 morph_stylegan3 morph_diffae   # the subfolders you have</code></pre>
+        Add <code>-n</code> for a dry run.</li>
+      <li>Run the full pipeline:
+<pre><code>python src/facetrust/examples/demo_full_pipeline.py</code></pre></li>
+    </ol>
+    <p>Expected data layout:</p>
+<pre><code>data/clean/&lt;subject_id&gt;/&lt;sample_id&gt;.png
+data/watermarked/&lt;subject_id&gt;/&lt;sample_id&gt;__alpha&lt;alpha&gt;.png
+data/morph/&lt;algorithm&gt;/&lt;contributor_a&gt;+&lt;contributor_b&gt;.png</code></pre>
+  </section>
+
+  <section id="metrics">
+    <h2>What does the code measure?</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Concept</th><th>Metrics</th><th>Module</th></tr></thead>
+      <tbody>
+        <tr><td>Verification</td><td>FAR, FRR, ROC, DET, EER, TAR@FAR</td><td><code>verification</code></td></tr>
+        <tr><td>Identification</td><td>CMC, rank-N accuracy</td><td><code>identification</code></td></tr>
+        <tr><td>Representation</td><td>Embedding drift 1 − cos(f(I), f(I<sub>w</sub>))</td><td><code>verification</code></td></tr>
+        <tr><td>Morphing threat</td><td>MMPMR, FMMPMR, ProdAvg-MMPMR, RMMR</td><td><code>morphing</code></td></tr>
+        <tr><td>Perceptual quality</td><td>PSNR, SSIM, LPIPS</td><td><code>image_quality</code></td></tr>
+        <tr><td>Watermark reliability</td><td>Detection rate, BER</td><td><code>watermark</code></td></tr>
+        <tr><td>Robustness</td><td>JPEG, resize, blur, crop, rotation</td><td><code>transforms</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="credits">
+    <h2>Data and third-party code</h2>
+    <ul class="plain">
+      <li>Clean images: <a href="https://figshare.com/articles/dataset/Face_Research_Lab_London_Set/5047666">Face Research Lab London Set</a> (CC BY 4.0).</li>
+      <li>Morphs: <a href="https://www.idiap.ch/en/scientific-research/data/frll-morphs">FRLL-Morphs</a> (AMSL, FaceMorpher, OpenCV, StyleGAN2).</li>
+      <li>Watermarking: <a href="https://github.com/facebookresearch/ssl_watermarking">SSLWatermarking</a> (CC BY-NC) and <a href="https://github.com/TuBui/RoSteALS">RoSteALS</a>.</li>
+      <li>MMPMR, ProdAvg and RMMR checked against the <a href="https://github.com/dasec/mvr">reference implementation</a> by Scherhag et al.</li>
+    </ul>
+  </section>
+
+  <section id="cite">
+    <h2>Citation</h2>
+    <div class="bib">
+      <button type="button" class="copy" data-target="bibtex">Copy</button>
+<pre id="bibtex"><code>@inproceedings{schardong2026biometrics,
+  title     = {Biometrics under attack: On provenance, trust and threat robustness},
+  author    = {Schardong, Guilherme and Novello, Tiago and Schirmer, Luiz and Gonçalves, Nuno },
+  booktitle = {SIBGRAPI 2026 Tutorials},
+  year      = {2026}
+}</code></pre>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Code released under the MIT license. Page template free to reuse.
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = document.getElementById(b.dataset.target).innerText;
+      navigator.clipboard.writeText(t).then(function () {
+        b.textContent = 'Copied';
+        setTimeout(function () { b.textContent = 'Copy'; }, 1500);
+      });
+    });
+  });
+</script>
+</body>
+</html>
