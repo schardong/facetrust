@@ -1,130 +1,130 @@
-# facetrust — métricas de biometria facial sob ataques de morphing e watermarking
+# facetrust — face biometrics metrics under morphing and watermarking attacks
 
-Base de código para o demonstrador do tutorial *"Biometrics under attack: On provenance, trust and threat robustness"*. Implementa as métricas de **identificação/verificação biométrica** e de **qualidade de imagem** descritas no artigo mencionado acima e nos slides, para avaliar ataques (morphing) e defesas (watermarking — SSLWatermarking, RoSTEALS) ao longo do pipeline:
+Codebase for the demonstrator of the tutorial *"Biometrics under attack: On provenance, trust and threat robustness"*. It implements the **biometric identification/verification** and **image quality** metrics described in the paper above and in the slides, to evaluate attacks (morphing) and defenses (watermarking — SSLWatermarking, RoSTEALS) along the pipeline:
 
 ```
-captura -> processamento -> registro (enrollment) -> reconhecimento (decisão)
+capture -> processing -> enrollment -> recognition (decision)
 ```
 
-**O que este pacote NÃO faz:** não gera watermarks, não decodifica mensagens de SSLWatermarking/RoSTEALS, e não gera morphings. Ele assume que essas imagens (limpas, marcadas e morphed) já existem, e foca em transformar isso em métricas comparáveis, tabelas e gráficos.
+**What this package does NOT do:** it does not generate watermarks, it does not decode SSLWatermarking/RoSTEALS messages, and it does not generate morphs. It assumes these images (clean, watermarked and morphed) already exist, and focuses on turning them into comparable metrics, tables and plots.
 
-## Instalação
+## Installation
 
 ```bash
-pip install -e .                       # núcleo: verification/identification/
+pip install -e .                       # core: verification/identification/
                                        # morphing/image_quality/pipeline/plotting
-pip install -e ".[arcface]"            # + ArcFaceEmbedder pronto (insightface)
-pip install -e ".[lpips]"              # + métrica perceptual LPIPS
-pip install -e ".[arcface,lpips]"      # combine quantas extras quiser
-pip install -e ".[all]"                # tudo, incluindo ssl-watermarking e rosteals
+pip install -e ".[arcface]"            # + ready-to-use ArcFaceEmbedder (insightface)
+pip install -e ".[lpips]"              # + LPIPS perceptual metric
+pip install -e ".[arcface,lpips]"      # combine as many extras as you like
+pip install -e ".[all]"                # everything, including ssl-watermarking and rosteals
 ```
 
-Sem nenhuma extra, o pacote já funciona normalmente: basta fornecer seus próprios embeddings via `CallableEmbedder`, e usar apenas PSNR/SSIM em vez de LPIPS.
+Without any extras the package already works: just provide your own embeddings through `CallableEmbedder`, and use PSNR/SSIM only instead of LPIPS.
 
-`requirements.txt` continua disponível como alternativa para quem prefere `pip install -r requirements.txt` a instalar o pacote propriamente dito.
+`requirements.txt` is still available as an alternative for those who prefer `pip install -r requirements.txt` over installing the package itself.
 
-### Sobre as extras `ssl-watermarking` e `rosteals`
+### About the `ssl-watermarking` and `rosteals` extras
 
-Nem o SSLWatermarking (`facebookresearch/ssl_watermarking`) nem o RoSTEALS (`TuBui/RoSteALS`) são pacotes publicados no PyPI — os dois são repositórios de pesquisa distribuídos como "clone o repo + `pip install -r requirements.txt` + baixe os pesos manualmente", sem `setup.py`/ `pyproject.toml` próprio. Ou seja, **`pip install -e ".[rosteals]"` nunca vai instalar o RoSTEALS em si** — essas duas extras só pré-instalam as dependências pesadas de runtime que os dois repositórios exigem (`torch` etc.), para o ambiente já estar pronto para:
+Neither SSLWatermarking (`facebookresearch/ssl_watermarking`) nor RoSTEALS (`TuBui/RoSteALS`) is published on PyPI — both are research repositories distributed as "clone the repo + `pip install -r requirements.txt` + download the weights manually", with no `setup.py`/`pyproject.toml` of their own. In other words, **`pip install -e ".[rosteals]"` will never install RoSTEALS itself** — these two extras only pre-install the heavy runtime dependencies that both repositories require (`torch` etc.), so the environment is ready for you to:
 
-1. clonar cada repositório manualmente (`git clone ...`) e baixar os pesos conforme as instruções de cada um;
-2. apontar as funções `embed`/`extract` de cada repo para `facetrust.watermark.SSLWatermarkAdapter` / `RoSTEALSAdapter`.
+1. clone each repository manually (`git clone ...`) and download the weights following each one's instructions;
+2. point each repo's `embed`/`extract` functions to `facetrust.watermark.SSLWatermarkAdapter` / `RoSTEALSAdapter`.
 
-As versões fixadas nessas duas extras são um ponto de partida best-effort — confira o `requirements.txt` oficial de cada repositório antes de fixar versões em produção, pois eles evoluem independentemente deste pacote.
+The versions pinned in these two extras are a best-effort starting point — check each repository's official `requirements.txt` before pinning versions in production, since they evolve independently of this package.
 
-## Estrutura
+## Structure
 
 ```
 facetrust/
-  embeddings.py     - extração de embeddings faciais (ArcFace ou custom)
-  image_quality.py  - PSNR, SSIM, LPIPS (opcional)
-  verification.py   - similaridade, genuine/impostor, FAR/FRR/ROC/DET/EER/TAR@FAR, embedding drift
-  identification.py - CMC e rank-N accuracy (cenário 1:N)
-  morphing.py       - MMPMR / FMMPMR / ProdAvg-MMPMR / RMMR (potencial de ataque de morphing; MMPMR, ProdAvg e RMMR conferidos contra a implementação de referência de Scherhag et al., https://github.com/dasec/mvr)
-  watermark.py      - BER, taxa de detecção, adaptadores para SSLWatermarking e RoSTEALS
-  transforms.py     - JPEG, resize, blur, crop, rotação (robustez)
-  plotting.py       - distribuições, ROC/DET, varredura de alpha, curva MMPMR
-  pipeline.py        - orquestra tudo acima em cima de um dataset de amostras
+  embeddings.py     - face embedding extraction (ArcFace or custom)
+  image_quality.py  - PSNR, SSIM, LPIPS (optional)
+  verification.py   - similarity, genuine/impostor, FAR/FRR/ROC/DET/EER/TAR@FAR, embedding drift
+  identification.py - CMC and rank-N accuracy (1:N scenario)
+  morphing.py       - MMPMR / FMMPMR / ProdAvg-MMPMR / RMMR (morphing attack potential; MMPMR, ProdAvg and RMMR checked against the reference implementation by Scherhag et al., https://github.com/dasec/mvr)
+  watermark.py      - BER, detection rate, adapters for SSLWatermarking and RoSTEALS
+  transforms.py     - JPEG, resize, blur, crop, rotation (robustness)
+  plotting.py       - distributions, ROC/DET, alpha sweep, MMPMR curve
+  pipeline.py       - orchestrates all of the above over a dataset of samples
 
   adapters/
-    ssl_watermarking.py - integração real com facebookresearch/ssl_watermarking
-                          (chama o encode/decode deles, não reimplementa)
+    ssl_watermarking.py - actual integration with facebookresearch/ssl_watermarking
+                          (calls their encode/decode, does not reimplement them)
 
 examples/
-  alpha_sweep_demo.py       - equivalente ao "starter loop" dos slides
-  demo_full_pipeline.py     - demo completo lendo uma pasta de dados
-  ssl_watermarking_demo.py  - roda o SSLWatermarking de verdade sobre data/clean/
+  alpha_sweep_demo.py       - equivalent to the "starter loop" in the slides
+  demo_full_pipeline.py     - full demo reading a data folder
+  ssl_watermarking_demo.py  - runs the actual SSLWatermarking over data/clean/
 
 tests/
-  test_metrics_synthetic.py            - testes de sanidade com dados sintéticos
-  test_ssl_watermarking_adapter_glue.py - testes da camada de cola do adaptador SSL (sem torch)
+  test_metrics_synthetic.py             - sanity tests with synthetic data
+  test_ssl_watermarking_adapter_glue.py - tests for the SSL adapter glue layer (no torch)
 ```
 
-## Uso rápido
+## Quick start
 
 ```python
 from facetrust.embeddings import CallableEmbedder
 from facetrust.pipeline import Sample, EvaluationDataset, PipelineEvaluator
 
-# Troque por ArcFaceEmbedder() ou seu próprio extrator.
-embedder = CallableEmbedder(minha_funcao_de_embedding)
+# Replace with ArcFaceEmbedder() or your own extractor.
+embedder = CallableEmbedder(my_embedding_function)
 
 dataset = EvaluationDataset()
-dataset.add(Sample("alice_clean", imagem_limpa, subject_id="alice", condition="clean"))
-dataset.add(Sample("alice_wm_0.5", imagem_marcada, subject_id="alice",
+dataset.add(Sample("alice_clean", clean_image, subject_id="alice", condition="clean"))
+dataset.add(Sample("alice_wm_0.5", watermarked_image, subject_id="alice",
                     condition="watermarked", alpha=0.5))
-dataset.add(Sample("morph_ab_stylegan2", imagem_morphed, subject_id="alice+bob",
+dataset.add(Sample("morph_ab_stylegan2", morphed_image, subject_id="alice+bob",
                     condition="morphed", contributors=["alice", "bob"],
                     morph_algorithm="stylegan2"))
 
 dataset.compute_embeddings(embedder)
 evaluator = PipelineEvaluator(dataset)
 
-print(evaluator.verification_report("clean"))       # EER, TAR@FAR
-print(evaluator.image_quality_matrix())               # PSNR/SSIM clean vs. outras condições
-print(evaluator.embedding_drift_report("watermarked")) # drift por alpha
-print(evaluator.morph_attack_report())                 # MMPMR/FMMPMR/RMMR por FAR alvo
-print(evaluator.morph_attack_report(group_by_algorithm=True))  # idem, quebrado por morph_algorithm
-print(evaluator.robustness_table(embedder))            # tabela JPEG/resize/blur/crop/rotação
+print(evaluator.verification_report("clean"))          # EER, TAR@FAR
+print(evaluator.image_quality_matrix())                 # PSNR/SSIM clean vs. other conditions
+print(evaluator.embedding_drift_report("watermarked"))  # drift per alpha
+print(evaluator.morph_attack_report())                  # MMPMR/FMMPMR/RMMR per target FAR
+print(evaluator.morph_attack_report(group_by_algorithm=True))  # same, broken down by morph_algorithm
+print(evaluator.robustness_table(embedder))             # JPEG/resize/blur/crop/rotation table
 ```
 
-Para o fluxo completo lendo imagens de disco, veja `examples/demo_full_pipeline.py` (estrutura de pastas esperada documentada no cabeçalho do arquivo) e `examples/alpha_sweep_demo.py` para o exemplo mínimo de varredura de força do watermark.
+For the full workflow reading images from disk, see `examples/demo_full_pipeline.py` (the expected folder structure is documented in the file header), and `examples/alpha_sweep_demo.py` for the minimal watermark-strength sweep example.
 
-## Conectando SSLWatermarking e RoSTEALS
+## Connecting SSLWatermarking and RoSTEALS
 
-`facetrust.watermark` não reimplementa esses métodos — ele padroniza os resultados que eles já produzem. Para o **SSLWatermarking**, já existe uma integração pronta em `facetrust.adapters.ssl_watermarking` (chama o `encode.watermark_0bit`/`decode.decode_0bit` reais do repositório clonado, não reimplementa a matemática de embedding):
+`facetrust.watermark` does not reimplement these methods — it standardizes the results they already produce. For **SSLWatermarking**, there is a ready-made integration in `facetrust.adapters.ssl_watermarking` (it calls the actual `encode.watermark_0bit`/`decode.decode_0bit` from the cloned repository and does not reimplement the embedding math):
 
 ```python
 from facetrust.adapters.ssl_watermarking import load_ssl_watermarking, make_single_image_adapter_fns
 from facetrust.watermark import SSLWatermarkAdapter
 
 ctx = load_ssl_watermarking(
-    repo_path="/caminho/para/ssl_watermarking",   # git clone facebookresearch/ssl_watermarking
-    model_path="/caminho/para/dino_r50_plus.pth", # backbone pré-treinado (ver README deles)
-    normlayer_path="/caminho/para/out2048_yfcc_orig.pth",
+    repo_path="/path/to/ssl_watermarking",   # git clone facebookresearch/ssl_watermarking
+    model_path="/path/to/dino_r50_plus.pth", # pretrained backbone (see their README)
+    normlayer_path="/path/to/out2048_yfcc_orig.pth",
     target_fpr=1e-6,
 )
 embed_fn, extract_fn = make_single_image_adapter_fns(ctx, mode="0bit")
 ssl_wm = SSLWatermarkAdapter(embed_fn, extract_fn)
 ```
 
-Requer `pip install -e ".[ssl-watermarking]"` (torch/torchvision/augly) + as dependências específicas do repositório deles + os pesos pré-treinados baixados manualmente (ver `facetrust/adapters/ssl_watermarking.py` para o passo a passo completo, incluindo um link direto para os pesos). Licença do ssl_watermarking: **CC-BY-NC** (uso não-comercial). Para processar um dataset inteiro de uma vez (mais eficiente que `SSLWatermarkAdapter` imagem por imagem), use `embed_0bit`/`decode_0bit` diretamente — ver `examples/ssl_watermarking_demo.py`. **Aviso de desempenho:** cada imagem passa por uma otimização iterativa (não um forward pass único) — rode isso offline, antes da sessão ao vivo do tutorial, não durante o hands-on.
+Requires `pip install -e ".[ssl-watermarking]"` (torch/torchvision/augly) + their repository's specific dependencies + the pretrained weights downloaded manually (see `facetrust/adapters/ssl_watermarking.py` for the full step-by-step guide, including a direct link to the weights). ssl_watermarking license: **CC-BY-NC** (non-commercial use). To process an entire dataset at once (more efficient than `SSLWatermarkAdapter` image by image), use `embed_0bit`/`decode_0bit` directly — see `examples/ssl_watermarking_demo.py`. **Performance warning:** each image goes through an iterative optimization (not a single forward pass) — run this offline, before the live tutorial session, not during the hands-on.
 
-Para o **RoSTEALS**, ainda não há uma integração pronta (a mesma estrutura de `ssl_watermarking.py` serve de modelo caso queira montar uma):
+For **RoSTEALS**, there is no ready-made integration yet (the structure of `ssl_watermarking.py` can serve as a template if you want to build one):
 
 ```python
 from facetrust.watermark import SSLWatermarkAdapter, RoSTEALSAdapter
 
-rosteals = RoSTEALSAdapter(embed_fn=meu_embed_rosteals, extract_fn=meu_decode_rosteals)
+rosteals = RoSTEALSAdapter(embed_fn=my_rosteals_embed, extract_fn=my_rosteals_decode)
 ```
 
-A partir daí, `bit_error_rate()` (RoSTEALS, baseado em payload) e `detection_metrics()` (SSLWatermarking, baseado em detecção) padronizam os resultados para entrarem em `PipelineEvaluator.robustness_table(..., watermark_detector=...)`.
+From there, `bit_error_rate()` (RoSTEALS, payload-based) and `detection_metrics()` (SSLWatermarking, detection-based) standardize the results so they can be fed into `PipelineEvaluator.robustness_table(..., watermark_detector=...)`.
 
-## Comparando vários algoritmos de morphing
+## Comparing multiple morphing algorithms
 
-Uma morph não tem um único "sujeito" de referência (ela mistura dois ou mais contribuidores), então `Sample.subject_id` para `condition="morphed"` é só um rótulo de conveniência (sugestão: `"+".join(contributors)`, ex. `"alice+bob"`) — **não** é usado para achar uma referência "clean" única, porque essa referência não existe.
+A morph has no single reference "subject" (it blends two or more contributors), so `Sample.subject_id` for `condition="morphed"` is just a convenience label (suggestion: `"+".join(contributors)`, e.g. `"alice+bob"`) — it is **not** used to look up a single "clean" reference, because no such reference exists.
 
-Quem identifica QUAL algoritmo gerou a morph é `Sample.morph_algorithm` (ex. `"stylegan2"`, `"stylegan3"`, `"diffae"`, `"opencv"`). Isso é o que permite avaliar vários algoritmos no MESMO par de contribuidores lado a lado:
+What identifies WHICH algorithm generated the morph is `Sample.morph_algorithm` (e.g. `"stylegan2"`, `"stylegan3"`, `"diffae"`, `"opencv"`). This is what allows evaluating several algorithms side by side on the SAME pair of contributors:
 
 ```python
 dataset.add(Sample("m1", img_stylegan2, subject_id="alice+bob",
@@ -137,38 +137,38 @@ dataset.add(Sample("m3", img_diffae, subject_id="alice+bob",
                     condition="morphed", contributors=["alice", "bob"],
                     morph_algorithm="diffae"))
 
-# Qualidade de imagem por algoritmo (1 linha por morph x contribuidor):
+# Image quality per algorithm (1 row per morph x contributor):
 iq = evaluator.image_quality_matrix()
 iq[iq["condition"] == "morphed"].groupby("morph_algorithm")[["psnr", "ssim"]].mean()
 
-# MMPMR/FMMPMR/RMMR por algoritmo, na mesma varredura de FARs:
+# MMPMR/FMMPMR/RMMR per algorithm, over the same FAR sweep:
 evaluator.morph_attack_report(group_by_algorithm=True)
 ```
 
-Ao carregar de disco com `examples/demo_full_pipeline.py`, o algoritmo é a subpasta em `data/morphed/<algorithm>/<contributor_a>+<contributor_b>.png` (ver cabeçalho do script para a convenção completa, incluindo o sufixo opcional para múltiplas morphs do mesmo par pelo mesmo algoritmo).
+When loading from disk with `examples/demo_full_pipeline.py`, the algorithm is the subfolder in `data/morphed/<algorithm>/<contributor_a>+<contributor_b>.png` (see the script header for the full convention, including the optional suffix for multiple morphs of the same pair by the same algorithm).
 
-## Mapeamento artigo/slides → código
+## Paper/slides → code mapping
 
-| Conceito no artigo/slides                              | Onde está no código                                   |
-|----------------------------------------------------------|--------------------------------------------------------|
-| Cosine similarity, genuine/impostor                       | `verification.cosine_similarity`, `build_score_pairs`  |
-| FAR, FRR, threshold                                       | `verification.far_frr`, `threshold_at_far`             |
-| ROC, DET, EER, TAR@FAR                                     | `verification.roc_curve_data`, `det_curve_data`, `eer`, `tar_at_far` |
-| Embedding drift (`1 - cos(f(I), f(I_w))`)                  | `verification.embedding_drift`                          |
-| Four core comparison scenarios (Clean/WM × Clean/WM)       | `verification.cross_condition_scores`, `pipeline.PipelineEvaluator.four_scenario_report` |
-| CMC / rank-N (cenário de identificação)                    | `identification.cmc_curve`, `rank_n_accuracy`           |
-| MMPMR / FMMPMR / ProdAvg-MMPMR / RMMR                       | `morphing.mmpmr`, `fmmpmr`, `prodavg_mmpmr`, `rmmr`, `mmpmr_at_far`, `map_curve` |
-| PSNR, SSIM, (LPIPS)                                        | `image_quality.psnr`, `ssim`, `lpips_distance`          |
-| Detection rate, BER, payload                               | `watermark.detection_metrics`, `bit_error_rate`         |
-| Robustez a JPEG/resize/blur/crop/rotação                   | `transforms.DEFAULT_TRANSFORMS`, `pipeline.PipelineEvaluator.robustness_table` |
-| Joint evaluation matrix                                    | `pipeline.PipelineEvaluator.joint_evaluation_summary`   |
+| Concept in the paper/slides                           | Where it is in the code                                |
+|-------------------------------------------------------|--------------------------------------------------------|
+| Cosine similarity, genuine/impostor                   | `verification.cosine_similarity`, `build_score_pairs`  |
+| FAR, FRR, threshold                                   | `verification.far_frr`, `threshold_at_far`             |
+| ROC, DET, EER, TAR@FAR                                | `verification.roc_curve_data`, `det_curve_data`, `eer`, `tar_at_far` |
+| Embedding drift (`1 - cos(f(I), f(I_w))`)             | `verification.embedding_drift`                         |
+| Four core comparison scenarios (Clean/WM × Clean/WM)  | `verification.cross_condition_scores`, `pipeline.PipelineEvaluator.four_scenario_report` |
+| CMC / rank-N (identification scenario)                | `identification.cmc_curve`, `rank_n_accuracy`          |
+| MMPMR / FMMPMR / ProdAvg-MMPMR / RMMR                 | `morphing.mmpmr`, `fmmpmr`, `prodavg_mmpmr`, `rmmr`, `mmpmr_at_far`, `map_curve` |
+| PSNR, SSIM, (LPIPS)                                   | `image_quality.psnr`, `ssim`, `lpips_distance`         |
+| Detection rate, BER, payload                          | `watermark.detection_metrics`, `bit_error_rate`        |
+| Robustness to JPEG/resize/blur/crop/rotation          | `transforms.DEFAULT_TRANSFORMS`, `pipeline.PipelineEvaluator.robustness_table` |
+| Joint evaluation matrix                               | `pipeline.PipelineEvaluator.joint_evaluation_summary`  |
 
-## Testes
+## Tests
 
 ```bash
 PYTHONPATH=. python -m pytest tests/ -v
-# ou, sem pytest instalado, rode as funções test_* diretamente:
+# or, without pytest installed, run the test_* functions directly:
 PYTHONPATH=. python -c "import tests.test_metrics_synthetic as t; [getattr(t, n)() for n in dir(t) if n.startswith('test_')]; print('OK')"
 ```
 
-Os testes usam apenas dados sintéticos (sem modelos de face nem watermarking reais), servindo como verificação de que a lógica das métricas está correta antes de rodar em cima dos seus dados reais.
+The tests use only synthetic data (no real face or watermarking models), serving as a check that the metric logic is correct before running on your real data.
