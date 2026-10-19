@@ -145,7 +145,7 @@ iq[iq["condition"] == "morphed"].groupby("morph_algorithm")[["psnr", "ssim"]].me
 evaluator.morph_attack_report(group_by_algorithm=True)
 ```
 
-When loading from disk with `examples/demo_full_pipeline.py`, the algorithm is the subfolder in `data/morphed/<algorithm>/<contributor_a>+<contributor_b>.png` (see the script header for the full convention, including the optional suffix for multiple morphs of the same pair by the same algorithm).
+When loading from disk with `examples/demo_full_pipeline.py`, the algorithm is the subfolder in `data/morph/<algorithm>/<contributor_a>+<contributor_b>.png` (see the script header for the full convention, including the optional suffix for multiple morphs of the same pair by the same algorithm).
 
 ## Paper/slides → code mapping
 
